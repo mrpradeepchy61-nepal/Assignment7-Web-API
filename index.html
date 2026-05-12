@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web API</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #666;
+    }
+
+    .container {
+      width: 85%;
+      min-height: 430px;
+      margin: 40px auto;
+      padding: 25px;
+      border: 1px solid #ccc;
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: normal;
+      margin-bottom: 20px;
+    }
+
+    form input {
+      width: 70%;
+      padding: 9px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 15px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #66afe9;
+      box-shadow: 0 0 8px #66afe9;
+    }
+
+    button {
+      background: #44a944;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #2f8f2f;
+    }
+
+    #result {
+      margin-top: 30px;
+    }
+
+    .profile h2 {
+      font-size: 26px;
+      font-weight: normal;
+      margin-bottom: 10px;
+    }
+
+    .profile h2 span {
+      color: #8aaed6;
+      font-style: italic;
+      font-size: 18px;
+    }
+
+    .profile-info {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .profile-info img {
+      width: 70px;
+      height: 70px;
+      border: 1px solid #ccc;
+      padding: 3px;
+      object-fit: cover;
+    }
+
+    .profile-info p {
+      margin: 3px 0;
+      font-size: 14px;
+    }
+
+    .repo-title {
+      font-weight: bold;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .repo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    .repo-list a {
+      background: #e46b35;
+      color: white;
+      padding: 8px 10px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .repo-list a:hover {
+      background: #c95625;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>API Sample</h1>
+
+    <form id="githubForm">
+      <input type="text" id="username" placeholder="Github username..." />
+      <button type="submit">Pull User Data</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("githubForm");
+    const usernameInput = document.getElementById("username");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const username = usernameInput.value.trim();
+
+      if (username === "") {
+        result.innerHTML = "<p class='error'>Please enter github username.</p>";
+        return;
+      }
+
+      result.innerHTML = "Loading...";
+
+      fetch("https://api.github.com/users/" + username + "/repos")
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("User not found");
+          }
+          return response.json();
+        })
+        .then(function (repos) {
+          if (repos.length === 0) {
+            result.innerHTML = "<p>No repositories found.</p>";
+            return;
+          }
+
+          const user = repos[0].owner;
+
+          result.innerHTML = `
+            <div class="profile">
+              <h2>${user.login} <span>(@${user.login})</span></h2>
+
+              <div class="profile-info">
+                <img src="${user.avatar_url}" alt="User Image">
+
+                <div>
+                  <p>Followers: Loading - Following: Loading</p>
+                  <p>Repos: ${repos.length}</p>
+                </div>
+              </div>
+
+              <div class="repo-title">Repos List:</div>
+              <div class="repo-list">
+                ${repos.map(function (repo) {
+                  return `<a href="${repo.html_url}" target="_blank">${repo.name}</a>`;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        })
+        .catch(function () {
+          result.innerHTML = "<p class='error'>Github user not found.</p>";
+        });
+    });
+  </script>
+</body>
+</html>
